@@ -1,0 +1,14 @@
+<template>
+  <view>我是Order页面</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+export default class Order extends wepy.page{
+
+}
+</script>
+
+<style lang="less" scoped>
+
+</style>

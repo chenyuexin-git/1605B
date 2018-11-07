@@ -1,0 +1,96 @@
+<template>
+  <block>
+    <view wx:for="{{list}}" wx:key="{{index}}">
+      <view class="item">
+        <image src="{{item.restaurant.image_path}}"/>
+        <text>{{item.restaurant.name}}</text>
+      </view>
+    </view>
+    <text>正在加载中...</text>
+  </block>
+</template>
+
+<script>
+import wepy from 'wepy'
+import {getList} from '../api/index.js';
+
+export default class Index extends wepy.page{
+  config = {
+    enablePullDownRefresh: true,
+    onReachBottomDistance: 50
+  }
+  data = {
+    current: 1,
+    list: []
+  }
+  methods = {
+    getData: (callback = ()=>{})=>{
+      console.log(this.current);
+      wepy.showLoading({
+        title: '拼命加载中...'
+      })
+      getList((this.current-1)*20, (res)=>{
+        console.log('res...', res);
+        res.data.items.forEach(item=>{
+          item.restaurant.image_path = this.methods.formatImage(item.restaurant.image_path)
+        })
+        if (this.current == 1){
+          this.list = res.data.items;
+        }else{
+          this.list = this.list.concat(res.data.items);
+        }
+
+        this.$apply();
+        callback();
+        wepy.hideLoading();
+      });
+    },
+    formatImage(url){
+      console.log('url', url);
+      let dir1 = url.slice(0,1),
+          dir2 = url.slice(1, 3),
+          type = '';
+      url = url.slice(3);
+      let types = ['jpg', 'png', 'jpeg'];
+      types.forEach(item=>{
+        if (url.indexOf(item) != -1){
+          type = item;
+        }
+      })
+      return `https://fuss10.elemecdn.com/${dir1}/${dir2}/${url}.${type}?imageMogr/format/webp/thumbnail/!130x130r/gravity/Center/crop/130x130/`
+    }
+  }
+
+  onShow(){
+    // console.log(this);
+    this.methods.getData();
+  }
+  onReachBottom(){
+    this.current++;
+    this.$apply();
+    this.methods.getData();
+    console.log('触发上拉加载')
+  }
+  onPullDownRefresh(){
+    console.log('触发下拉刷新')
+    this.methods.getData(()=>{
+      wepy.stopPullDownRefresh();
+    });
+  }
+}
+</script>
+
+<style lang="less" scoped>
+.item{
+  display: flex;
+  align-items: center;
+  image{
+    width: 130rpx;
+    height: 130rpx;
+  }
+  text{
+
+  }
+}
+
+</style>
